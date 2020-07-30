@@ -46,11 +46,11 @@ class ActivityWatcher:
         start = datetime.datetime.now()
 
         while datetime.datetime.now() - start < self.availability_wait_interval:
+            time.sleep(15)
             try:
                 conn = psycopg2.connect(f'dbname=postgres user=postgres host={self.db_host}')
             except Exception:
                 log.info('Server not available', exc_info=True)
-                time.sleep(15)
             else:
                 log.info('Server is available')
                 conn.close()
