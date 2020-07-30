@@ -54,7 +54,7 @@ class ActivityWatcher:
             else:
                 log.info('Server is available')
                 conn.close()
-                break
+                return
 
         raise Exception(f'Server not available since {start}')
 
