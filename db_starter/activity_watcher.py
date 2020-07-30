@@ -50,6 +50,7 @@ class ActivityWatcher:
                 conn = psycopg2.connect(f'dbname=postgres user=postgres host={self.db_host}')
             except Exception:
                 log.info('Server not available', exc_info=True)
+                time.sleep(15)
             else:
                 log.info('Server is available')
                 conn.close()
