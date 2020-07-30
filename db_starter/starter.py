@@ -138,7 +138,13 @@ class Starter:
         log.info('Service %s updated', self.service_name)
 
         service_dns_name = f'{self.service_name}.{self.target_namespace}.svc.cluster.local'
-        self.activity_watcher = ActivityWatcher(service_dns_name, datetime.timedelta(minutes=10), self.disengage)
+        self.activity_watcher = ActivityWatcher(
+            db_host=service_dns_name,
+            max_inactive_dt=datetime.timedelta(minutes=10),
+            callback=self.disengage)
+
+        self.activity_watcher.wait_availability()
+
         activity_watcher_thread = threading.Thread(target=self.activity_watcher.start, name='activity_watcher')
         activity_watcher_thread.daemon = True
         activity_watcher_thread.start()

@@ -8,6 +8,8 @@ log = logging.getLogger(__name__)
 
 
 class ActivityWatcher:
+    availability_wait_interval = datetime.timedelta(minutes=10)
+
     def __init__(self, db_host, max_inactive_dt, callback):
         self.db_host = db_host
         self.max_inactive_dt = max_inactive_dt
@@ -38,6 +40,22 @@ class ActivityWatcher:
                 log.info('There is no current activity')
 
         log.info('There was no activity since %s, finishing', last_activity)
+
+    def wait_availability(self):
+        log.info('Waiting for postgres server...')
+        start = datetime.datetime.now()
+
+        while datetime.datetime.now() - start < self.availability_wait_interval:
+            try:
+                conn = psycopg2.connect(f'dbname=postgres user=postgres host={self.db_host}')
+            except Exception:
+                log.info('Server not available', exc_info=True)
+            else:
+                log.info('Server is available')
+                conn.close()
+                break
+
+        raise Exception(f'Server not available since {start}')
 
     def has_activity(self):
         conn = psycopg2.connect(f'dbname=postgres user=postgres host={self.db_host}')
