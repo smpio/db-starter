@@ -68,6 +68,8 @@ class Starter:
 
         log.info('Using snapshot "%s" from %s', snapshot['name'], snapshot['creationTimestamp'])
 
+        # ts = datetime.datetime.utcnow().replace(tzinfo=None)
+        # ts_str = ts.isoformat('T', 'seconds').replace(':', '-').replace('T', '--')
         disk = {
             'name': f'db-starter--{src_pv.metadata.name}',
             'sourceSnapshot': snapshot['selfLink'],
@@ -76,12 +78,13 @@ class Starter:
 
         log.info('Creating disk %s...', disk['name'])
 
-        self.compute.disks().insert(
+        operation = self.compute.disks().insert(
             project=self.gcp_project,
             zone=self.gcp_zone,
             body=disk,
         ).execute()
-        # result = self.wait_for_operation(operation['name'])
+        self.wait_for_operation(operation['name'])
+        log.info('Disk created')
 
         target_pv = self.v1.create_persistent_volume({
             'apiVersion': 'v1',
@@ -210,7 +213,7 @@ class Starter:
                     raise Exception(result['error'])
                 return result
 
-            time.sleep(1)
+            time.sleep(5)
 
 
 @contextlib.contextmanager
