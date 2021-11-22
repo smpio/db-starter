@@ -59,20 +59,24 @@ class ActivityWatcher:
         raise Exception(f'Server not available since {start}')
 
     def has_activity(self):
-        conn = psycopg2.connect(f'dbname=postgres user=postgres host={self.db_host}')
-        cur = conn.cursor()
-        cur.execute(
-            """SELECT pid
-            FROM pg_stat_activity
-            WHERE backend_type='client backend' AND pid<>pg_backend_pid()
-            LIMIT 1"""
-        )
-        ret = cur.fetchone()
+        try:
+            conn = psycopg2.connect(f'dbname=postgres user=postgres host={self.db_host}')
+            cur = conn.cursor()
+            cur.execute(
+                """SELECT pid
+                FROM pg_stat_activity
+                WHERE backend_type='client backend' AND pid<>pg_backend_pid()
+                LIMIT 1"""
+            )
+            ret = cur.fetchone()
 
-        cur.close()
-        conn.close()
+            cur.close()
+            conn.close()
 
-        return ret is not None
+            return ret is not None
+        except Exception:
+            log.exception('Failed to determine activity')
+            return False
 
     def cancel(self):
         self._cancel = True
